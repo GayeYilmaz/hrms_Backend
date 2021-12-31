@@ -28,4 +28,12 @@ public class JobTitleManager implements JobTitleService{
 		return this.jobTitleDao.findAll();
 	}
 
+
+
+	@Override
+	public void add(JobTitle jobTitle) {
+		this.jobTitleDao.save(jobTitle);
+		
+	}
+
 }

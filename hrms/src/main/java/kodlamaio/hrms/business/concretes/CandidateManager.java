@@ -27,4 +27,12 @@ public class CandidateManager implements CandidateService{
 		return this.candidateDao.findAll();
 	}
 
+
+	@Override
+	public void add(Candidate candidate) {
+		// TODO Auto-generated method stub
+		this.candidateDao.save(candidate);
+		
+	}
+
 }
