@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import kodlamaio.hrms.business.abstracts.JobTitleService;
 import kodlamaio.hrms.dataAccess.abstracts.JobTitleDao;
+import kodlamaio.hrms.entities.concretes.Candidate;
 import kodlamaio.hrms.entities.concretes.JobTitle;
 
 @Service
@@ -32,7 +33,24 @@ public class JobTitleManager implements JobTitleService{
 
 	@Override
 	public void add(JobTitle jobTitle) {
-		this.jobTitleDao.save(jobTitle);
+		if(checkJobTitle(jobTitle.getTitle())==true) {
+			System.out.println(jobTitle.getTitle()+" added.");
+			this.jobTitleDao.save(jobTitle);
+		}else {
+			System.out.println("Job title is already in database.");
+		}
+		
+		
+	}
+	
+	public boolean checkJobTitle(String title) {
+		List<JobTitle> jobTitleInDb = this.jobTitleDao.findAll();
+		for(JobTitle jobTitle : jobTitleInDb) {
+			if(jobTitle.getTitle().equals(title)){
+				return false;
+			}
+		}
+		return true;
 		
 	}
 
