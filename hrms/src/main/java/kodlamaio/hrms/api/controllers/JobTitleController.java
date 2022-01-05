@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import kodlamaio.hrms.business.abstracts.JobTitleService;
+import kodlamaio.hrms.core.utilities.results.DataResult;
+import kodlamaio.hrms.core.utilities.results.Result;
 import kodlamaio.hrms.entities.concretes.JobTitle;
 
 @RestController
@@ -25,14 +27,14 @@ public class JobTitleController {
 	}
 	
     @GetMapping("/getAll")
-	public List<JobTitle> getAll(){
+	public DataResult<List<JobTitle>> getAll(){
 		return this.jobTitleService.getAll();
 		
 	}
     
     @PostMapping("/add")
-    public void add(@RequestBody JobTitle jobTitle) {
-    	this.jobTitleService.add(jobTitle);
+    public Result add(@RequestBody JobTitle jobTitle) {
+    	return this.jobTitleService.add(jobTitle);
     }
 
 }

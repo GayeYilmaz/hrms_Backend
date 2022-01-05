@@ -6,6 +6,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import kodlamaio.hrms.business.abstracts.JobTitleService;
+import kodlamaio.hrms.core.utilities.results.DataResult;
+import kodlamaio.hrms.core.utilities.results.ErrorResult;
+import kodlamaio.hrms.core.utilities.results.Result;
+import kodlamaio.hrms.core.utilities.results.SuccessDataResult;
+import kodlamaio.hrms.core.utilities.results.SuccessResult;
 import kodlamaio.hrms.dataAccess.abstracts.JobTitleDao;
 import kodlamaio.hrms.entities.concretes.Candidate;
 import kodlamaio.hrms.entities.concretes.JobTitle;
@@ -24,22 +29,23 @@ public class JobTitleManager implements JobTitleService{
 	
 
 	@Override
-	public List<JobTitle> getAll() {
+	public DataResult<List<JobTitle>> getAll() {
 		
-		return this.jobTitleDao.findAll();
+		return new SuccessDataResult<List<JobTitle>>(this.jobTitleDao.findAll(),"Data listed!");
 	}
 
 
 
 	@Override
-	public void add(JobTitle jobTitle) {
+	public Result add(JobTitle jobTitle) {
 		if(checkJobTitle(jobTitle.getTitle())==true) {
-			System.out.println(jobTitle.getTitle()+" added.");
 			this.jobTitleDao.save(jobTitle);
-		}else {
-			System.out.println("Job title is already in database.");
+			return new SuccessResult(jobTitle.getTitle()+" added.");
+			
 		}
-		
+			
+			
+		return new ErrorResult("Job title is already in database.");
 		
 	}
 	

@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import kodlamaio.hrms.business.abstracts.CandidateService;
+import kodlamaio.hrms.core.utilities.results.DataResult;
+import kodlamaio.hrms.core.utilities.results.Result;
 import kodlamaio.hrms.entities.concretes.Candidate;
 
 
@@ -26,14 +28,14 @@ public class CandidateController {
 	}
 	
 	@GetMapping("/getAll")
-	public List<Candidate> getAll(){
+	public DataResult<List<Candidate>> getAll(){
 		return this.candidateService.getAll();
 		
 	}
     
     @PostMapping("/add")
-    public void add(@RequestBody Candidate candidate) {
-    	this.candidateService.add(candidate);
+    public Result add(@RequestBody Candidate candidate) {
+    	return this.candidateService.add(candidate);
     }
 	
 

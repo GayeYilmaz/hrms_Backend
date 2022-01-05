@@ -8,6 +8,11 @@ import org.springframework.stereotype.Service;
 import kodlamaio.hrms.business.abstracts.CandidateService;
 import kodlamaio.hrms.core.EmailVerificationService;
 import kodlamaio.hrms.core.VerificationService;
+import kodlamaio.hrms.core.utilities.results.DataResult;
+import kodlamaio.hrms.core.utilities.results.ErrorResult;
+import kodlamaio.hrms.core.utilities.results.Result;
+import kodlamaio.hrms.core.utilities.results.SuccessDataResult;
+import kodlamaio.hrms.core.utilities.results.SuccessResult;
 import kodlamaio.hrms.dataAccess.abstracts.CandidateDao;
 import kodlamaio.hrms.entities.concretes.Candidate;
 
@@ -28,34 +33,39 @@ public class CandidateManager implements CandidateService{
 
 
 	@Override
-	public List<Candidate> getAll() {
+	public DataResult<List<Candidate>> getAll() {
 		// TODO Auto-generated method stub
-		return this.candidateDao.findAll();
+		return new SuccessDataResult<List<Candidate>>( this.candidateDao.findAll(),"Data listed");
 	}
 
 
 	@Override
-	public void add(Candidate candidate) {
+	public Result add(Candidate candidate) {
 		// TODO Auto-generated method stub
 		if(isNull(candidate)==false) {
-			System.out.println("All fields are obligatory!");
+			return new ErrorResult("All fields are obligatory!");
+			
 		}
 		else if(checkEmail(candidate.getEmail())==false) {
-			System.out.println("Email is already used!");
+			return new ErrorResult("Email is already used!");
+			
 		}
 		else if(checkIdentityNumber(candidate.getIdentityNumber())==false) {
-			System.out.println("Identity number already used");
+			return new ErrorResult("Identity number already used");
+			
 		}
 		else {
 			if(this.verificationService.verify(candidate.getFirstName(), candidate.getLastName(), candidate.getIdentityNumber(), candidate.getBirthYear())==true) {
 				if(this.emailVerificationService.emailVerifcation(candidate.getEmail())==true) {
+					
 					this.candidateDao.save(candidate);
-					System.out.println(candidate.getFirstName()+" "+candidate.getLastName()+" registered!");
+					return new SuccessResult(candidate.getFirstName()+" "+candidate.getLastName()+" registered!");
+					
 				}
 				}
 			}
 			
-		
+		return new ErrorResult("There is error contorl your fields");
 		
 	}
 	//Check fields if they are null
