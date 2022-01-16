@@ -6,34 +6,42 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import kodlamaio.hrms.business.abstracts.EmployerService;
-import kodlamaio.hrms.core.EmailVerificationManager;
-import kodlamaio.hrms.core.EmailVerificationService;
-import kodlamaio.hrms.core.EmployeeVerificationService;
-import kodlamaio.hrms.core.VerificationService;
 import kodlamaio.hrms.core.utilities.results.DataResult;
 import kodlamaio.hrms.core.utilities.results.ErrorResult;
 import kodlamaio.hrms.core.utilities.results.Result;
 import kodlamaio.hrms.core.utilities.results.SuccessDataResult;
-import kodlamaio.hrms.core.utilities.results.SuccessResult;
+
+
+import kodlamaio.hrms.core.utilities.verifications.EmailVerificationService;
+import kodlamaio.hrms.core.utilities.verifications.EmployeeVerificationService;
+
 import kodlamaio.hrms.dataAccess.abstracts.EmployerDao;
-import kodlamaio.hrms.entities.concretes.Candidate;
+import kodlamaio.hrms.dataAccess.abstracts.VerificationCodeDao;
+import kodlamaio.hrms.dataAccess.abstracts.VerificationCodeEmployerDao;
+
 import kodlamaio.hrms.entities.concretes.Employer;
-import kodlamaio.hrms.entities.concretes.User;
+
+import kodlamaio.hrms.entities.concretes.VerificationCode;
 
 @Service
 public class EmployerManager implements EmployerService{
 	private EmployerDao employerDao;
 	private EmployeeVerificationService employeeVerificationService;
 	private EmailVerificationService emailVerificationService;
-	
+	private VerificationCodeDao verificationCodeDao;
+	private VerificationCodeEmployerDao verificationCodeEmployerDao;
 	
 
 	@Autowired
-	public EmployerManager(EmployerDao employerDao,EmployeeVerificationService employeeVerificationService, EmailVerificationService emailVerificationService) {
+	public EmployerManager(EmployerDao employerDao,EmployeeVerificationService employeeVerificationService, 
+			EmailVerificationService emailVerificationService, VerificationCodeEmployerDao verificationCodeEmployerDao,
+			VerificationCodeDao verificationCodeDao) {
 		super();
 		this.employerDao = employerDao;
 		this.employeeVerificationService=employeeVerificationService;
 		this.emailVerificationService=emailVerificationService;
+		this.verificationCodeDao = verificationCodeDao;
+		this.verificationCodeEmployerDao = verificationCodeEmployerDao;
 	}
 
 
@@ -53,12 +61,13 @@ public class EmployerManager implements EmployerService{
 		if(checkEmail(employer.getEmail())==false) {
 			return new ErrorResult("Email is already used!");
 			
+		}else {
+			this.employerDao.save(employer);
+			VerificationCode verificationCode = this.emailVerificationService.sendEmail(employer).getData();
+			//this.verificationCodeCandidateDao.save(verificationCode,candidate.getId());
+			
 		}
-		if(this.emailVerificationService.emailVerifcation(employer.getEmail())==true && this.employeeVerificationService.isVerifiedByEmployee(employer)==true ) {
-            	this.employerDao.save(employer);
-            	return new SuccessResult(employer.getCompanyName()+" registered!");
-     
-        }
+		
 			
 	
 		return new ErrorResult("There is an error control your fields!");

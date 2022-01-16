@@ -1,34 +1,44 @@
 package kodlamaio.hrms.business.concretes;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import kodlamaio.hrms.business.abstracts.CandidateService;
-import kodlamaio.hrms.core.EmailVerificationService;
-import kodlamaio.hrms.core.VerificationService;
 import kodlamaio.hrms.core.utilities.results.DataResult;
 import kodlamaio.hrms.core.utilities.results.ErrorResult;
 import kodlamaio.hrms.core.utilities.results.Result;
 import kodlamaio.hrms.core.utilities.results.SuccessDataResult;
 import kodlamaio.hrms.core.utilities.results.SuccessResult;
+import kodlamaio.hrms.core.utilities.verifications.EmailVerificationService;
+import kodlamaio.hrms.core.utilities.verifications.VerificationService;
 import kodlamaio.hrms.dataAccess.abstracts.CandidateDao;
+import kodlamaio.hrms.dataAccess.abstracts.VerificationCodeCandidateDao;
+import kodlamaio.hrms.dataAccess.abstracts.VerificationCodeDao;
 import kodlamaio.hrms.entities.concretes.Candidate;
+import kodlamaio.hrms.entities.concretes.User;
+import kodlamaio.hrms.entities.concretes.VerificationCode;
+import kodlamaio.hrms.entities.concretes.VerificationCodeCandidate;
 
 @Service
 public class CandidateManager implements CandidateService{
 	private CandidateDao candidateDao;
 	private EmailVerificationService emailVerificationService;
+	private VerificationCodeCandidateDao verificationCodeCandidateDao;
 	private VerificationService verificationService;
-	
+	private VerificationCodeDao verificationCodeDao;
 
 	@Autowired
-	public CandidateManager(CandidateDao candidateDao,EmailVerificationService emailVerificationService,VerificationService verificationService) {
+	public CandidateManager(CandidateDao candidateDao,EmailVerificationService emailVerificationService,VerificationCodeCandidateDao verificationCodeCandidateDao
+			,VerificationService verificationService,VerificationCodeDao verificationCodeDao) {
 		super();
 		this.candidateDao = candidateDao;
 		this.emailVerificationService = emailVerificationService;
-		this.verificationService = verificationService;
+		this.verificationCodeCandidateDao = verificationCodeCandidateDao;
+		this.verificationService=verificationService;
+		this.verificationCodeDao =  verificationCodeDao;
 	}
 
 
@@ -50,24 +60,33 @@ public class CandidateManager implements CandidateService{
 			return new ErrorResult("Email is already used!");
 			
 		}
-		else if(checkIdentityNumber(candidate.getIdentityNumber())==false) {
+		else if(!((getByIdentityNumber(candidate.getIdentityNumber()).getData())==null)) {
 			return new ErrorResult("Identity number already used");
 			
 		}
 		else {
 			if(this.verificationService.verify(candidate.getFirstName(), candidate.getLastName(), candidate.getIdentityNumber(), candidate.getBirthYear())==true) {
-				if(this.emailVerificationService.emailVerifcation(candidate.getEmail())==true) {
-					
-					this.candidateDao.save(candidate);
-					return new SuccessResult(candidate.getFirstName()+" "+candidate.getLastName()+" registered!");
-					
-				}
+				this.candidateDao.save(candidate);
+				Candidate canDB = candidateDao.getByIdentityNumber(candidate.getIdentityNumber());
+				VerificationCode verificationCode = this.emailVerificationService.sendEmail(candidate).getData();
+				VerificationCodeCandidate verificaionCodeCandidate = 
+						new VerificationCodeCandidate(0,verificationCode.getCode(),false,null,canDB.getId());
+				this.verificationCodeCandidateDao.save(verificaionCodeCandidate);
 				}
 			}
 			
 		return new ErrorResult("There is error contorl your fields");
 		
 	}
+	
+
+	@Override
+	public DataResult<Candidate> getByIdentityNumber(String identiyNumber) {
+		// TODO Auto-generated method stub
+		
+		return new SuccessDataResult<Candidate>(this.candidateDao.getByIdentityNumber(identiyNumber));
+	}
+
 	//Check fields if they are null
 	public  boolean isNull(Candidate candidate) {
 		//Check first name
@@ -121,6 +140,28 @@ public class CandidateManager implements CandidateService{
 		return true;
 
 	}
+
+
+	@Override
+	public Result verifyByEmail(String code) {
+		System.out.println(code);
+		if(this.verificationCodeDao.existsByCode(code)) {
+			return new ErrorResult("You did wrong verification!");
+		}
+		VerificationCode newVerificationCode = verificationCodeDao.fi;
+		if(this.verificationCodeDao.getOne(newVerificationCode.getId()).isVerified()) {
+			return new ErrorResult("Verification done already!");
+		}
+		LocalDate todayDate =(LocalDate.now());
+		newVerificationCode.setVerifiedDate(todayDate);
+		newVerificationCode.setVerified(true);
+	    this.verificationCodeDao.save(newVerificationCode);
+	
+		return new SuccessResult("Verification done!");
+	}
+
+
+
 	
 	
 }

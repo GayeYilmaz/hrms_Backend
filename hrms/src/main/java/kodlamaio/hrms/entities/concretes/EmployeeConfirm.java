@@ -1,5 +1,7 @@
 package kodlamaio.hrms.entities.concretes;
 
+import java.util.Date;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -18,20 +20,22 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Inheritance(strategy = InheritanceType.JOINED)
-@Table(name="users")
-public class User {
+@Table(name="employee_confirms")
+public class EmployeeConfirm {
 	
 	@Id
-	@Column(name="id")
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private int id; 
+	@Column(name="id")
+	private int id;
 	
-	@Column(name="email")
-	private String email;
+	@Column(name="employee_id")
+	private int employeeId;
 	
-	@Column(name="password")
-	private String password;
+	@Column(name="is_confirmed")
+	private boolean isConfirmed;
 	
-	
+	@Column(name="confirmed_date")
+	private Date confirmDate;
 
+	
 }

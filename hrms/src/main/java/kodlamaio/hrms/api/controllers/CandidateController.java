@@ -38,5 +38,10 @@ public class CandidateController {
     	return this.candidateService.add(candidate);
     }
 	
+    @PostMapping("/verify")
+    public Result verify(@RequestBody String code) {
+    	return this.candidateService.verifyByEmail(code);
+    }
+    
 
 }
