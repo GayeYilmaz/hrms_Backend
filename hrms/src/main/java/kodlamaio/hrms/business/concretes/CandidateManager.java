@@ -69,9 +69,10 @@ public class CandidateManager implements CandidateService{
 				this.candidateDao.save(candidate);
 				Candidate canDB = candidateDao.getByIdentityNumber(candidate.getIdentityNumber());
 				VerificationCode verificationCode = this.emailVerificationService.sendEmail(candidate).getData();
-				VerificationCodeCandidate verificaionCodeCandidate = 
+				VerificationCodeCandidate verificationCodeCandidate = 
 						new VerificationCodeCandidate(0,verificationCode.getCode(),false,null,canDB.getId());
-				this.verificationCodeCandidateDao.save(verificaionCodeCandidate);
+				this.verificationCodeCandidateDao.save(verificationCodeCandidate);
+				return new SuccessResult("Check your email for the validation code to complete your registeration!");
 				}
 			}
 			
@@ -148,7 +149,7 @@ public class CandidateManager implements CandidateService{
 		if(this.verificationCodeDao.existsByCode(code)) {
 			return new ErrorResult("You did wrong verification!");
 		}
-		VerificationCode newVerificationCode = verificationCodeDao.fi;
+		VerificationCode newVerificationCode = verificationCodeDao.getByCode(code);
 		if(this.verificationCodeDao.getOne(newVerificationCode.getId()).isVerified()) {
 			return new ErrorResult("Verification done already!");
 		}

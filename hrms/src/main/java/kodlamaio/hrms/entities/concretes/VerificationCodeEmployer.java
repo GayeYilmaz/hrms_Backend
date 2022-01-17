@@ -1,5 +1,7 @@
 package kodlamaio.hrms.entities.concretes;
 
+import java.time.LocalDate;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.PrimaryKeyJoinColumn;
@@ -21,5 +23,11 @@ public class VerificationCodeEmployer extends VerificationCode {
 	
 	@Column(name="employer_id")
 	private int employerId;
+	
+	public VerificationCodeEmployer(int id, String code, boolean isVerified, LocalDate verifiedDate, int employerId) {
+		super(id, code, isVerified, verifiedDate);
+		this.employerId = employerId;
+	}
+	
 
 }

@@ -1,6 +1,8 @@
 package kodlamaio.hrms.business.concretes;
 
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -10,18 +12,19 @@ import kodlamaio.hrms.core.utilities.results.DataResult;
 import kodlamaio.hrms.core.utilities.results.ErrorResult;
 import kodlamaio.hrms.core.utilities.results.Result;
 import kodlamaio.hrms.core.utilities.results.SuccessDataResult;
-
-
+import kodlamaio.hrms.core.utilities.results.SuccessResult;
 import kodlamaio.hrms.core.utilities.verifications.EmailVerificationService;
 import kodlamaio.hrms.core.utilities.verifications.EmployeeVerificationService;
 
 import kodlamaio.hrms.dataAccess.abstracts.EmployerDao;
 import kodlamaio.hrms.dataAccess.abstracts.VerificationCodeDao;
 import kodlamaio.hrms.dataAccess.abstracts.VerificationCodeEmployerDao;
-
+import kodlamaio.hrms.entities.concretes.Candidate;
 import kodlamaio.hrms.entities.concretes.Employer;
 
 import kodlamaio.hrms.entities.concretes.VerificationCode;
+import kodlamaio.hrms.entities.concretes.VerificationCodeCandidate;
+import kodlamaio.hrms.entities.concretes.VerificationCodeEmployer;
 
 @Service
 public class EmployerManager implements EmployerService{
@@ -54,23 +57,30 @@ public class EmployerManager implements EmployerService{
 
 	@Override
 	public Result add(Employer employer) {
+		Pattern p = Pattern.compile("^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,6}$", Pattern.CASE_INSENSITIVE);
+		Matcher m = p.matcher(employer.getEmail());
 		if(isNull(employer)==false) {
 			return new ErrorResult("All fields are obligatory!");
 			
 		}
-		if(checkEmail(employer.getEmail())==false) {
-			return new ErrorResult("Email is already used!");
+		if(checkEmail(employer.getEmail())==false || m.find()==false) {
+			return new ErrorResult("Email is already used or the format of email is wrong!");
 			
 		}else {
 			this.employerDao.save(employer);
+			Employer empDB = employerDao.getByEmail(employer.getEmail());
 			VerificationCode verificationCode = this.emailVerificationService.sendEmail(employer).getData();
+			VerificationCodeEmployer verificationCodeEmployer = 
+					new VerificationCodeEmployer(0,verificationCode.getCode(),false,null,empDB.getId());
+			this.verificationCodeEmployerDao.save(verificationCodeEmployer);
+			return new SuccessResult("Check your email for the validation code to complete your registeration!");
 			//this.verificationCodeCandidateDao.save(verificationCode,candidate.getId());
 			
 		}
 		
 			
 	
-		return new ErrorResult("There is an error control your fields!");
+		
 	}
 	
 	//Check fields if they are null
