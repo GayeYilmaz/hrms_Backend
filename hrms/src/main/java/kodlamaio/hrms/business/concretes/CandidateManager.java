@@ -2,6 +2,8 @@ package kodlamaio.hrms.business.concretes;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -51,16 +53,21 @@ public class CandidateManager implements CandidateService{
 
 	@Override
 	public Result add(Candidate candidate) {
-		// TODO Auto-generated method stub
+
+		Pattern p = Pattern.compile("^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,6}$", Pattern.CASE_INSENSITIVE);
+		Matcher m = p.matcher(candidate.getEmail());
 		if(isNull(candidate)==false) {
 			return new ErrorResult("All fields are obligatory!");
 			
 		}
-		else if(checkEmail(candidate.getEmail())==false) {
-			return new ErrorResult("Email is already used!");
+		if(!checkPassword(candidate.getPassword(),candidate.getPasswordRepeat()) ){
+			return new ErrorResult("Repeated password is wrong!");
+		}
+		if(checkEmail(candidate.getEmail())==false  || m.find()==false) {
+			return new ErrorResult("Email is already used or the format of email is wrong!");
 			
 		}
-		else if(!((getByIdentityNumber(candidate.getIdentityNumber()).getData())==null)) {
+		if(!((getByIdentityNumber(candidate.getIdentityNumber()).getData())==null)) {
 			return new ErrorResult("Identity number already used");
 			
 		}
@@ -76,7 +83,7 @@ public class CandidateManager implements CandidateService{
 				}
 			}
 			
-		return new ErrorResult("There is error contorl your fields");
+		return new ErrorResult("These informations are not belong any person!");
 		
 	}
 	
@@ -145,11 +152,11 @@ public class CandidateManager implements CandidateService{
 
 	@Override
 	public Result verifyByEmail(String code) {
-		System.out.println(code);
-		if(this.verificationCodeDao.existsByCode(code)) {
+		
+		if(!this.verificationCodeDao.existsByCode(code)) {
 			return new ErrorResult("You did wrong verification!");
 		}
-		VerificationCode newVerificationCode = verificationCodeDao.getByCode(code);
+		VerificationCode newVerificationCode = verificationCodeDao.findByCode(code);
 		if(this.verificationCodeDao.getOne(newVerificationCode.getId()).isVerified()) {
 			return new ErrorResult("Verification done already!");
 		}
@@ -161,6 +168,13 @@ public class CandidateManager implements CandidateService{
 		return new SuccessResult("Verification done!");
 	}
 
+	//Check the two password
+	public boolean checkPassword(String password,String password_repeat) {
+		if(password.equals(password_repeat)){
+			return true;
+		}
+		return false;
+	}
 
 
 	

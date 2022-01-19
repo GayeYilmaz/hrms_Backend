@@ -1,5 +1,6 @@
 package kodlamaio.hrms.entities.concretes;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 import javax.persistence.Column;
@@ -35,7 +36,7 @@ public class EmployeeConfirm {
 	private boolean isConfirmed;
 	
 	@Column(name="confirmed_date")
-	private Date confirmDate;
+	private LocalDate confirmDate;
 
 	
 }

@@ -7,6 +7,7 @@ import java.util.regex.Pattern;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import kodlamaio.hrms.business.abstracts.EmployeeService;
 import kodlamaio.hrms.business.abstracts.EmployerService;
 import kodlamaio.hrms.core.utilities.results.DataResult;
 import kodlamaio.hrms.core.utilities.results.ErrorResult;
@@ -15,11 +16,12 @@ import kodlamaio.hrms.core.utilities.results.SuccessDataResult;
 import kodlamaio.hrms.core.utilities.results.SuccessResult;
 import kodlamaio.hrms.core.utilities.verifications.EmailVerificationService;
 import kodlamaio.hrms.core.utilities.verifications.EmployeeVerificationService;
-
+import kodlamaio.hrms.dataAccess.abstracts.EmployeeConfirmEmployerDao;
 import kodlamaio.hrms.dataAccess.abstracts.EmployerDao;
 import kodlamaio.hrms.dataAccess.abstracts.VerificationCodeDao;
 import kodlamaio.hrms.dataAccess.abstracts.VerificationCodeEmployerDao;
 import kodlamaio.hrms.entities.concretes.Candidate;
+import kodlamaio.hrms.entities.concretes.EmployeeConfirmEmployer;
 import kodlamaio.hrms.entities.concretes.Employer;
 
 import kodlamaio.hrms.entities.concretes.VerificationCode;
@@ -29,6 +31,7 @@ import kodlamaio.hrms.entities.concretes.VerificationCodeEmployer;
 @Service
 public class EmployerManager implements EmployerService{
 	private EmployerDao employerDao;
+	private EmployeeConfirmEmployerDao employeeConfirmEmployerDao ;
 	private EmployeeVerificationService employeeVerificationService;
 	private EmailVerificationService emailVerificationService;
 	private VerificationCodeDao verificationCodeDao;
@@ -38,13 +41,14 @@ public class EmployerManager implements EmployerService{
 	@Autowired
 	public EmployerManager(EmployerDao employerDao,EmployeeVerificationService employeeVerificationService, 
 			EmailVerificationService emailVerificationService, VerificationCodeEmployerDao verificationCodeEmployerDao,
-			VerificationCodeDao verificationCodeDao) {
+			VerificationCodeDao verificationCodeDao,EmployeeConfirmEmployerDao employeeConfirmEmployerDao ) {
 		super();
 		this.employerDao = employerDao;
 		this.employeeVerificationService=employeeVerificationService;
 		this.emailVerificationService=emailVerificationService;
 		this.verificationCodeDao = verificationCodeDao;
 		this.verificationCodeEmployerDao = verificationCodeEmployerDao;
+		this.employeeConfirmEmployerDao = employeeConfirmEmployerDao ;
 	}
 
 
@@ -57,11 +61,18 @@ public class EmployerManager implements EmployerService{
 
 	@Override
 	public Result add(Employer employer) {
+		
 		Pattern p = Pattern.compile("^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,6}$", Pattern.CASE_INSENSITIVE);
 		Matcher m = p.matcher(employer.getEmail());
 		if(isNull(employer)==false) {
 			return new ErrorResult("All fields are obligatory!");
 			
+		}
+		if(!checkPassword(employer.getPassword(),employer.getPasswordRepeat()) ){
+			return new ErrorResult("Repeated password is wrong!");
+		}
+		if(!checkDomain(employer.getWebAddress(),employer.getEmail())) {
+			return new ErrorResult("Domains of email and web address are not same!");
 		}
 		if(checkEmail(employer.getEmail())==false || m.find()==false) {
 			return new ErrorResult("Email is already used or the format of email is wrong!");
@@ -73,7 +84,11 @@ public class EmployerManager implements EmployerService{
 			VerificationCodeEmployer verificationCodeEmployer = 
 					new VerificationCodeEmployer(0,verificationCode.getCode(),false,null,empDB.getId());
 			this.verificationCodeEmployerDao.save(verificationCodeEmployer);
-			return new SuccessResult("Check your email for the validation code to complete your registeration!");
+			EmployeeConfirmEmployer employeeConfirmEmployer = 
+					new EmployeeConfirmEmployer(0,0,false,null,employer.getId());
+			this.employeeConfirmEmployerDao.save(employeeConfirmEmployer);
+			return new SuccessResult("To complete registeratiom email verification and the employees confirm are required!"
+					+ "Check your email for the email verification.We are going to inform you when the employee confirm complet.");
 			//this.verificationCodeCandidateDao.save(verificationCode,candidate.getId());
 			
 		}
@@ -124,6 +139,26 @@ public class EmployerManager implements EmployerService{
 			}
 			return true;
 
+		}
+		
+		//Check the two password
+		public boolean checkPassword(String password,String password_repeat) {
+			if(password.equals(password_repeat)){
+				return true;
+			}
+			return false;
+		}
+		
+		//Check domain
+		public boolean checkDomain(String webAddress ,String email) {
+			String emailDomain[] = email.split("@");
+			String webAddressDomain[] = webAddress.split("\\.");
+			String webDomain[] = webAddressDomain[0].split("//");
+			if(webDomain[1].equalsIgnoreCase(emailDomain[0])) {
+				return true;
+			}
+			
+			return false;
 		}
 
 }

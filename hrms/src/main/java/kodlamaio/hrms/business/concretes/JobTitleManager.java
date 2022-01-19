@@ -52,7 +52,7 @@ public class JobTitleManager implements JobTitleService{
 	public boolean checkJobTitle(String title) {
 		List<JobTitle> jobTitleInDb = this.jobTitleDao.findAll();
 		for(JobTitle jobTitle : jobTitleInDb) {
-			if(jobTitle.getTitle().equals(title)){
+			if(jobTitle.getTitle().equalsIgnoreCase(title)){
 				return false;
 			}
 		}
